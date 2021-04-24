@@ -1,0 +1,89 @@
+#!/bin/sh
+
+
+RED='\033[0;31m' #Red
+GR='\033[0;32m' #Green
+NC='\033[0m' # No Color
+
+printf "\n"
+echo "   ██████╗ ██╗ ██████╗ █████╗ ██╗     ";
+echo "   ██╔══██╗██║██╔════╝██╔══██╗██║     ";
+echo "   ██████╔╝██║██║     ███████║██║     ";
+echo "   ██╔═══╝ ██║██║     ██╔══██║██║     ";
+echo "   ██║     ██║╚██████╗██║  ██║███████╗";
+echo "   ╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝";
+
+printf "\t\tMade 𝔹𝕪 𝕊𝕠𝕦𝕣𝕒𝕧 𝕊𝕒𝕙𝕒𝕟𝕒 (${RED}@PocDork${NC})\n"
+printf "\t\t  https://twitter.com/pocdork/\n"
+printf "${RED}Visit https://github.com/pocdork/pical/ for more information.${NC}\n\n\n"
+
+arg="$1"
+input="$2"
+
+name=$(hostname)
+dir=$(pwd)
+printf "${GR}Hi $name,${NC}\n\n"
+
+
+	case "$arg" in
+		-e )
+			printf "Reading your file ${RED}$input...${NC}\n\n"
+			#This is for Domain input:
+			cp "$input" "./result/tmp-emails.txt"
+			sed -i 's/@/%40/' "./result/tmp-emails.txt"
+
+			printf "${RED}Checking Calendar Permission...${NC}\n\n\n"
+
+			while read lines
+			do
+				curl "https://calendar.google.com/calendar/ical/$lines/public/basic.ics" -silent | grep "X-WR-CALNAME:" | cut -c 14- | tee -a "./result/public-emails.txt" > /dev/null
+
+			done < "./result/tmp-emails.txt"
+			rm "./result/tmp-emails.txt"
+
+			printf "${RED}Found Public calendars...${NC}\n"
+
+			while read cal
+			do
+				printf "${GR}https://calendar.google.com/calendar/u/0/r?cid=$cal${NC}\n"
+
+			done < "./result/public-emails.txt"
+			printf "${RED}Result Saved in $dir/result/public-emails.txt${NC}\n\n"
+
+			;;
+
+		-t )
+			#Its for File input:
+			printf "${RED}Getting Emails from theHarvester${NC}\n"
+			# printf "${RED}Configure (Intelx, Github, Securitytrail, Hunter, ProjectDiscovery) API key in theHarvester better result${NC}\n"
+
+
+			theHarvester -d sony.com -b google | tee -a "./result/res.txt"
+			theHarvester -d sony.com -b bing | tee -a "./result/res.txt"
+			cat "./result/res.txt" | awk '/sony.com/ && /@/' | tee -a "./result/res"
+			rm "./result/res.txt"
+
+
+			printf "${RED}Checking Calendar Permission...${NC}\n"	
+			while read lines
+			do
+
+				curl "https://calendar.google.com/calendar/ical/$lines/public/basic.ics" -silent | grep "X-WR-CALNAME:" | cut -c 14- | tee -a "./result/public-emails.txt" > /dev/null
+
+			done < "./result/public-emails.txt"
+			#Comment this if you want to save emails from theHarvester
+			# rm "./result/res"
+
+			printf "${RED}Found Public calendars...${NC}\n"
+			while read cal
+			do
+				printf "${GR}https://calendar.google.com/calendar/u/0/r?cid='$cal'${NC}\n"
+
+			done < "./result/public-emails.txt"
+			printf "${RED}Results Saved in $dir/result/public-emails.txt${NC}\n\n"
+
+			;;
+		* )
+			echo "Invalid Argument!"
+			;;
+	esac
